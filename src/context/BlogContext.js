@@ -1,28 +1,13 @@
-import React, {useReducer} from 'react'
-
-export default (reducer, actions, initialState) => {
-    const Context = React.createContext()
-
-    const Provider = ({children}) => {
-        const [state, dispatch] = useReducer(reducer, initialState)
-
-        const boundActions = {}
-        for(let key in actions){
-            boundActions[key] = actions[key](dispatch)
-        }
-
-        return <Context.Provider value={{state, ...boundActions}}>
-            {children}
-        </Context.Provider>
-    }
-
-    return {Context, Provider}
-}
-
 import createDataContext from './createDataContext'
 
 const blogReducer = (state, action) => {
     switch(action.type) {
+        case 'edit_blogpost':
+            return state.map((blogPost) => {
+                return blogPost.id === action.payload.id
+                ? action.payload
+                : blogPost
+            })
         case 'delete_blogpost':
             return state.filter((blogPost)=> blogPost.id !== action.payload )
         case 'add_blogpost':
@@ -40,7 +25,7 @@ const blogReducer = (state, action) => {
 const addBlogPost = (dispatch) => {
     return (title, content, callback) => {
         dispatch({type: 'add_blogpost', payload: {title, content}})
-        callback()
+        callback ? callback() : null
     }
 }
 const deleteBlogPost = dispatch => {
@@ -49,4 +34,11 @@ const deleteBlogPost = dispatch => {
     }
 }
 
-export const {Context, Provider} = createDataContext(blogReducer, {addBlogPost, deleteBlogPost}, [])
+const editBlogPost = dispatch => {
+    return (id, title, content, callback) => {
+        dispatch({type: 'edit_blogpost', payload: {id, title, content}})
+        callback ? callback() : null
+    }
+}
+
+export const {Context, Provider} = createDataContext(blogReducer, {addBlogPost, deleteBlogPost, editBlogPost}, [{title: 'Test Post', content: 'lorem ipsum', id:'1'}])
