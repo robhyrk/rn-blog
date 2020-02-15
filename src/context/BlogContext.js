@@ -1,3 +1,24 @@
+import React, {useReducer} from 'react'
+
+export default (reducer, actions, initialState) => {
+    const Context = React.createContext()
+
+    const Provider = ({children}) => {
+        const [state, dispatch] = useReducer(reducer, initialState)
+
+        const boundActions = {}
+        for(let key in actions){
+            boundActions[key] = actions[key](dispatch)
+        }
+
+        return <Context.Provider value={{state, ...boundActions}}>
+            {children}
+        </Context.Provider>
+    }
+
+    return {Context, Provider}
+}
+
 import createDataContext from './createDataContext'
 
 const blogReducer = (state, action) => {
@@ -7,7 +28,8 @@ const blogReducer = (state, action) => {
         case 'add_blogpost':
             return [...state, {
                 id: Math.floor(Math.random() * 9999),  
-                title: `Blog Post #${state.length + 1}`
+                title: action.payload.title,
+                content: action.payload.content
             }
         ]
         default:
@@ -16,8 +38,9 @@ const blogReducer = (state, action) => {
 }
 
 const addBlogPost = (dispatch) => {
-    return () => {
-        dispatch({type: 'add_blogpost'})
+    return (title, content, callback) => {
+        dispatch({type: 'add_blogpost', payload: {title, content}})
+        callback()
     }
 }
 const deleteBlogPost = dispatch => {
