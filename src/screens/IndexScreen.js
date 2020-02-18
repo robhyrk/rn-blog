@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity } from 'react-native';
 import {Context} from '../context/BlogContext'
 import {Feather} from '@expo/vector-icons'
@@ -7,11 +7,24 @@ import {Feather} from '@expo/vector-icons'
 
 const IndexScreen = ({navigation}) => {
 
-  const {state, deleteBlogPost} = useContext(Context)
+  const {state, deleteBlogPost, getBlogPosts} = useContext(Context)
+
+  useEffect(() => {
+    getBlogPosts()
+
+    navigation.addListener('didFocus', () => {
+      getBlogPosts()
+    })
+
+    //to prevent memory leaks in case indexscreen ever gets removed
+    return () => {
+      listener.remove() // remove listener when index screen is removed
+    }
+  }, [])
 
   return (
     <View style={styles.container}>
-      <Text>Index Screen</Text>
+      <Text>My Blog</Text>
       <FlatList
         data={state}
         keyExtractor={(blogPost)=>{
